@@ -542,13 +542,13 @@ function getSimpleSchemaAllowedValues(field) {
 	var allowedValues = maWizard.getSchemaObj(field).allowedValues;
 
 	if(maAllowedValues) {
-		// maAllowedValues() requires a function that gets a field name
+		// maAllowedValues() requires a function that gets a key name
 		// and returns its value as parameter
-		var getFieldValue = function(field) {
+		var getKeyValue = function(field) {
 			return maWizard.getDataContext()[field];
 		};
 
-		return maAllowedValues(getFieldValue);
+		return maAllowedValues(getKeyValue);
 	}
 
 	if(allowedValues) {
