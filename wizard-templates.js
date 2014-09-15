@@ -1,4 +1,4 @@
-Template.maWizardMultiselect.rendered = function() {
+/*Template.maWizardMultiselect.rendered = function() {
 	var ms = $('.multiselect');
 
 	this.autorun(function() {
@@ -13,10 +13,11 @@ Template.maWizardMultiselect.rendered = function() {
 		}, 0);
 	});
 };
+
 Template.maWizardCheckbox.isChecked = function(field) {
 	var current = maWizard.getDataContext();
 	if(current && current[field])
 		return 'checked';
 	else
 		return '';
-};
+};*/
