@@ -3,7 +3,7 @@ ma:wizard
 
 ma:wizard is a smart package for [Meteor](https://www.meteor.com/) which simplifies data entry procedures in your app. It provides reactive data validation and lets you manage precisely the workflow of operations, giving you total control over the UI while providing little modular components that automatically integrate the package functionalities.
 
-ma:wizard makes use of [maSimpleSchema](https://github.com/doubleslashG/ma-simple-schema) for schemas definition and validation both client side and server side.
+ma:wizard makes use of [maSimpleSchema](https://github.com/doubleslashG/ma-simple-schema) for schemas definition and validation.
 
 ## Installation
 Clone the repository in a local directory
