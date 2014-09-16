@@ -548,7 +548,7 @@ UI.registerHelper('maWizardOptionIsSelected', function(field) {
 });
 
 UI.registerHelper('maWizardAllowedValuesFromSchema', function(field) {
-	return getSimpleSchemaAllowedValues(field);
+	return maWizard.getSimpleSchemaAllowedValues(field);
 });
 /*****************************************************************************************/
 
