@@ -292,6 +292,9 @@ function maWizardConstructor() {
 	 * Returns true if the data context is different from the document in database. False otherwise.
 	 */
 	this.hasChanged = function() {
+		if(!this.getDataContext())
+			return false;
+
 		var inDatabase = collection.findOne({_id: this.getDataContext()._id});
 
 		return inDatabase && !_.isEqual(inDatabase, this.getDataContext());
@@ -397,17 +400,7 @@ function maWizardConstructor() {
 	 */
 	this.setStandardEventHandlers = function(templ) {
 		var backToBase = function(evt, templ) {
-			var goBack = function(result) {
-				if(result) {
-					Router.go(maWizard.baseRoute);
-					maWizard.discard();
-				}
-			};
-
-			if(maWizard.hasChanged()) {
-				bootbox.confirm("Unsaved updates will be discarded. Do you really want to go back?", goBack);
-			}
-			else goBack(true);
+			Router.go(maWizard.baseRoute);
 		};
 
 		Template[templ].events({
@@ -551,5 +544,27 @@ UI.registerHelper('maWizardAllowedValuesFromSchema', function(field) {
 	return maWizard.getSimpleSchemaAllowedValues(field);
 });
 /*****************************************************************************************/
+
+// overriding the Router.go function in order not to lose changes in our wizards
+// http://stackoverflow.com/questions/24367914/aborting-navigation-with-meteor-iron-router
+
+var go = Router.go; // cache the original Router.go method
+Router.go = function () {
+	var self = this;
+	var args = arguments;
+
+	var goBack = function(result) {
+		if(result) {
+			go.apply(self, args);
+			if(maWizard.getDataContext())
+				maWizard.discard();
+		}
+	};
+
+	if(maWizard.hasChanged()) {
+		bootbox.confirm("Unsaved updates will be discarded. Do you really want to go back?", goBack);
+	}
+	else goBack(true);
+};
 
 maWizard = new maWizardConstructor();

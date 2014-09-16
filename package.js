@@ -1,7 +1,7 @@
 Package.describe({
   name: "ma:wizard",
   summary: "Forms and wizards management made easy",
-  version: "1.0.1",
+  version: "1.1.1",
   git: "https://github.com/doubleslashG/ma-wizard.git"
 });
 
@@ -9,6 +9,8 @@ Package.onUse(function(api) {
   api.versionsFrom('METEOR@0.9.1');
   
   api.use('ma:simple-schema');
+  api.use('iron:router');
+  api.use('mizzao:bootboxjs');
   api.use(['ui', 'tracker', 'underscore', 'templating']);
 
   api.imply('ma:simple-schema');
