@@ -14,31 +14,6 @@ function maWizardConstructor() {
 
 	var initializedTemplates = [];
 
-	// function set in the "custom" field of maSimpleSchema objects
-	// to validate against maAllowedValues
-	var customValidator = function() {
-        var self = this;
-
-        var contained = _.every(this.value, function(elem) {
-			var ids = _.map(getSimpleSchemaAllowedValues(self.key), function(elem) {
-				return elem.id.toString();
-            });
-
-            return ids.indexOf(elem) > -1;
-        });
-
-        if(contained) return true;
-        else return "notAllowed";
-    };
-
-	var setCustomValidation = function() {
-		var schemaObj = schema.schema();
-		for(var fieldObj in schemaObj) {
-			if(schemaObj[fieldObj].mawizard && schemaObj[fieldObj].mawizard.allowedValues) {
-				schemaObj[fieldObj].custom = customValidator;
-			}
-		}
-	};
 	/**
 	 * Returns a default value whose type is coherent with respect to the
 	 * 'key' data type reported in the schema
@@ -60,7 +35,7 @@ function maWizardConstructor() {
 	 * Returns an object whose structure is specified by the schema passed
 	 * to init(). All keys have default value
 	 */
-	var buildObjectFromSchema = function() {
+	this.buildObjectFromSchema = function() {
 		var obj = {};
 
 		_.each(schema.objectKeys(), function(key) {
@@ -89,6 +64,9 @@ function maWizardConstructor() {
 		return dataContext;
 	};
 
+	/**
+	 * Gets the maSimpleSchema validation context.
+	 */
 	this.getValidationContext = function() {
 		return validationContext;
 	};
@@ -107,6 +85,9 @@ function maWizardConstructor() {
 		return undefined;
 	};
 
+	/**
+	 * Gets the used maSimpleSchema object.
+	 */
 	this.getSchema = function() {
 		return schema;
 	};
@@ -346,8 +327,6 @@ function maWizardConstructor() {
 		else
 			schema = conf.schema;
 
-		setCustomValidation();
-
 		validationContext = schema.namedContext();
 
 		if(conf.baseRoute === undefined)
@@ -357,7 +336,7 @@ function maWizardConstructor() {
 
 		// if no id is specified I am adding a new object
 		if(conf.id === undefined)
-			contextObj = buildObjectFromSchema();
+			contextObj = this.buildObjectFromSchema();
 		else
 			contextObj = collection.findOne(conf.id);
 
@@ -370,6 +349,45 @@ function maWizardConstructor() {
 			this.setStandardEventHandlers(conf.template);
 			initializedTemplates.push(conf.template);
 		}
+	};
+
+	/**
+	 * Given a field, an array of the allowed values for that field is returned in the form of
+	 * objects with label/value keys. Such values are taken from the maAllowedValues() function 
+	 * defined in the schema definition. If the maAllowedValues function is not defined, values are
+	 * taken from the allowedValues field and in this case the label is equal to the value.
+	 * If allowedValues is also missing, an empty array is returned.
+	 * This function is used by the templates providing the select and multiselect components.
+	 * @param  {String} field - Name of the field of interest
+	 */
+	this.getSimpleSchemaAllowedValues = function(field) {
+		var maAllowedValues = maWizard.getSchemaObj(field).maAllowedValues;
+		var allowedValues = maWizard.getSchemaObj(field).allowedValues;
+
+		if(maAllowedValues) {
+			// maAllowedValues() requires a function that gets a key name
+			// and returns its value as parameter
+			var getKeyValue = function(field) {
+				return maWizard.getDataContext()[field];
+			};
+
+			return maAllowedValues(getKeyValue);
+		}
+
+		if(allowedValues) {
+			var toNormalize;
+
+			if(typeof allowedValues === 'function')
+				toNormalize = allowedValues();
+			else
+				toNormalize = allowedValues;
+
+			return _.map(allowedValues, function(elem) {
+				return {label: elem, value: label};
+			});
+		}
+
+		return [];
 	};
 
 	/**
@@ -433,16 +451,22 @@ function maWizardConstructor() {
 		onSaveFailureDep.changed();
 	};
 
+	/**
+	 * Reactively gets the `onSaveFailure` callback
+	 **/
 	this.getOnSaveFailure = function() {
 		onSaveFailureDep.depend();
 		return onSaveFailure;
 	};
 }
 
-
-/**
+ /**
  * Data structure used by various methods of maWizard. It simply stores
  * key/value pairs providing getters for both field name and value.
+ * @typedef {Object} FieldValuePair
+ * @property {Function} getValue - Gets the set value
+ * @property {Function} setValue - Sets value
+ * @property {Function} getFieldName - Gets field name as String
  */
 function FieldValuePair(field, value) {
 	var _field = field;
@@ -527,44 +551,5 @@ UI.registerHelper('maWizardAllowedValuesFromSchema', function(field) {
 	return getSimpleSchemaAllowedValues(field);
 });
 /*****************************************************************************************/
-
-/**
- * Given a field, an array of the allowed values for that field is returned in the form of
- * objects with label/value keys. Such values are taken from the maAllowedValues() function 
- * defined in the schema definition. If the maAllowedValues function is not defined, values are
- * taken from the allowedValues field and in this case the label is equal to the value.
- * If allowedValues is also missing, an empty array is returned.
- * This function is used by the templates providing the select and multiselect components.
- * @param  {String} field - Name of the field of interest
- */
-function getSimpleSchemaAllowedValues(field) {
-	var maAllowedValues = maWizard.getSchemaObj(field).maAllowedValues;
-	var allowedValues = maWizard.getSchemaObj(field).allowedValues;
-
-	if(maAllowedValues) {
-		// maAllowedValues() requires a function that gets a key name
-		// and returns its value as parameter
-		var getKeyValue = function(field) {
-			return maWizard.getDataContext()[field];
-		};
-
-		return maAllowedValues(getKeyValue);
-	}
-
-	if(allowedValues) {
-		var toNormalize;
-
-		if(typeof allowedValues === 'function')
-			toNormalize = allowedValues();
-		else
-			toNormalize = allowedValues;
-
-		return _.map(allowedValues, function(elem) {
-			return {label: elem, value: label};
-		});
-	}
-
-	return [];
-}
 
 maWizard = new maWizardConstructor();
