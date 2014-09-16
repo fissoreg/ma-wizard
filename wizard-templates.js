@@ -1,4 +1,4 @@
-/*Template.maWizardMultiselect.rendered = function() {
+Template.maWizardMultiselect.rendered = function() {
 	var ms = $('.multiselect');
 
 	this.autorun(function() {
@@ -20,4 +20,4 @@ Template.maWizardCheckbox.isChecked = function(field) {
 		return 'checked';
 	else
 		return '';
-};*/
+};
