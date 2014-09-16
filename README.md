@@ -3,7 +3,7 @@ ma:wizard
 
 ma:wizard is a smart package for [Meteor](https://www.meteor.com/) which simplifies data entry procedures in your app. It provides reactive data validation and lets you manage precisely the workflow of operations, giving you total control over the UI while providing little modular components that automatically integrate the package functionalities.
 
-ma:wizard makes use of [maSimpleSchema](https://github.com/aldeed/meteor-simple-schema) for schemas definition and validation both client side and server side.
+ma:wizard makes use of [maSimpleSchema](https://github.com/doubleslashG/ma-simple-schema) for schemas definition and validation both client side and server side.
 
 ## Installation
 Clone the repository in a local directory
@@ -134,7 +134,7 @@ As an example, here is the definition of the `maWizardSave` template:
 ## Custom components
 If the standard components don't fit your needs, you can easily define fancy custom components that are automatically managed by `maWizard`. To let `maWizard` be aware of the existence of your custom component, just add the boolean attribute `data-ma-wizard-control` to it. Then to link the component to a certain schema field, use the attribute `data-schemafield="fieldName"`. The value stored in the data context by `maWizard` is read from the `value` attribute of the HTML component.
 
-Sometimes you want a greater control over your custom components and you don't want `maWizard` to automatically manage them. In such a case, you can take complete control and use the `maWizard` APIs (see the "Custom component definition and manual management" section).
+Sometimes you want a greater control over your custom components and you don't want `maWizard` to automatically manage them. In such a case, you can take complete control and use the `maWizard` API (see the "Custom component definition and manual management" section).
 
 ## maWizard Helpers
 A set of reactive helpers to use with custom components.
@@ -192,4 +192,7 @@ Template.myTextInput.events({
 		else maWizard.saveHTMLElement(evt.currentTarget);
 });
 ````
-Now, the new component works as the standard components with the added functionality. Refer to the APIs section for documentation on the used methods.
+Now, the new component works as the standard components with the added functionality. Refer to the API section for documentation on the used methods.
+
+## API
+jsDoc generated: [API](http://htmlpreview.github.io/?https://github.com/doubleslashG/ma-wizard/blob/master/DOC/global.html)
