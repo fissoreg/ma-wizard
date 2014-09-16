@@ -562,7 +562,7 @@ Router.go = function () {
 	};
 
 	if(maWizard.hasChanged()) {
-		bootbox.confirm("Unsaved updates will be discarded. Do you really want to go back?", goBack);
+		bootbox.confirm("Unsaved updates will be discarded. Do you really want to proceed?", goBack);
 	}
 	else goBack(true);
 };
