@@ -13,6 +13,7 @@ function maWizardConstructor() {
 	var isInDatabase;
 
 	var initializedTemplates = [];
+	var self = this;
 
 	/**
 	 * Returns a default value whose type is coherent with respect to the
@@ -31,6 +32,15 @@ function maWizardConstructor() {
 		else if(Array.isArray(keyType))
 			return [];
 	};
+
+	var loadFromDatabase = function(id) {
+		// if no id is specified I am adding a new object
+		if(id === undefined)
+			return self.buildObjectFromSchema();
+		else
+			return collection.findOne(id);
+	};
+
 	/**
 	 * Returns an object whose structure is specified by the schema passed
 	 * to init(). All keys have default value
@@ -257,6 +267,10 @@ function maWizardConstructor() {
 	 */
 	this.saveToDatabase = function() {
 		var current = this.getDataContext();
+
+		if(current._id === undefined)
+			return "It seems like a .create() has never been called!";
+
 		// up-to-date data are already in the dataContext variable, just validate
 		// the entire object without the _id field
 		var toSave = _.omit(current, '_id');
@@ -282,7 +296,9 @@ function maWizardConstructor() {
 	 * Remove the current document from database.
 	 */
 	this.removeFromDatabase = function() {
-		return collection.remove(this.getDataContext()._id, function(error, result) {
+		var id = this.getDataContext()._id;
+		this.reset();
+		return collection.remove(id, function(error, result) {
 			console.log("Error on remove: " + error);
 			console.log("Removed elements: " + result);
 		});
@@ -303,10 +319,19 @@ function maWizardConstructor() {
 	/**
 	 * Set the data context to undefined and resets the validation context
 	 */
-	this.discard = function() {
+	this.reset = function() {
 		// TODO: remove orphan attachments files!!!
 		this.setDataContext(undefined);
 		validationContext.resetValidation();
+	};
+
+	/**
+	 * Reload the data context from database, overwriting eventual changes
+	 */
+	this.discard = function() {
+		var current = this.getDataContext();
+		if(current)
+			this.setDataContext(loadFromDatabase(current._id));
 	};
 
 	/**
@@ -337,11 +362,7 @@ function maWizardConstructor() {
 		else
 			this.baseRoute = conf.baseRoute;
 
-		// if no id is specified I am adding a new object
-		if(conf.id === undefined)
-			contextObj = this.buildObjectFromSchema();
-		else
-			contextObj = collection.findOne(conf.id);
+		contextObj = loadFromDatabase(conf.id);
 
 		this.setDataContext(contextObj);
 
@@ -399,7 +420,7 @@ function maWizardConstructor() {
 	 * @param  {Object} templ - Template containing the standard components
 	 */
 	this.setStandardEventHandlers = function(templ) {
-		var backToBase = function(evt, templ) {
+		var backToBase = function() {
 			Router.go(maWizard.baseRoute);
 		};
 
@@ -410,7 +431,7 @@ function maWizardConstructor() {
 			'click [data-ma-wizard-save]': function(evt, templ) {
 				if(maWizard.saveToDatabase()) {
 					Router.go(maWizard.baseRoute);
-					maWizard.discard();
+					maWizard.reset();
 				}
 				else {
 					var onSaveFailure = maWizard.getOnSaveFailure();
@@ -421,7 +442,12 @@ function maWizardConstructor() {
 					else onSaveFailure();
 				}
 			},
-			'click [data-ma-wizard-cancel], click [data-ma-wizard-backToList]': backToBase,
+			'click [data-ma-wizard-ok]': backToBase,
+			'click [data-ma-wizard-discard]': function(evt, templ) {
+				maWizard.discard();
+				backToBase();
+			},
+			'click [data-ma-wizard-back]': backToBase,
 			'click [data-ma-wizard-create]': function(evt, templ) {
 				if(maWizard.create())
 					Router.go(maWizard.baseRoute + "/" + maWizard.getDataContext()._id);
@@ -553,18 +579,15 @@ Router.go = function () {
 	var self = this;
 	var args = arguments;
 
-	var goBack = function(result) {
-		if(result) {
+	if(maWizard.getDataContext()) {
+		if(typeof maWizard.saveToDatabase() === 'number')
+			bootbox.alert("Invalid data present. Please correct them or discard changes.");
+		else {
 			go.apply(self, args);
-			if(maWizard.getDataContext())
-				maWizard.discard();
+			maWizard.reset();
 		}
-	};
-
-	if(maWizard.hasChanged()) {
-		bootbox.confirm("Unsaved updates will be discarded. Do you really want to proceed?", goBack);
 	}
-	else goBack(true);
+	else go.apply(self, args);
 };
 
 maWizard = new maWizardConstructor();
