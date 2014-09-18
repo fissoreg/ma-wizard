@@ -1,7 +1,7 @@
 Package.describe({
   name: "ma:wizard",
   summary: "Forms and wizards management made easy",
-  version: "1.1.2",
+  version: "2.0.0",
   git: "https://github.com/doubleslashG/ma-wizard.git"
 });
 

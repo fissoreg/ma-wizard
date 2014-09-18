@@ -580,7 +580,8 @@ Router.go = function () {
 	var args = arguments;
 
 	if(maWizard.getDataContext()) {
-		if(typeof maWizard.saveToDatabase() === 'number')
+		var saveResult = maWizard.saveToDatabase();
+		if(typeof saveResult === 'string' || saveResult === false)
 			bootbox.alert("Invalid data present. Please correct them or discard changes.");
 		else {
 			go.apply(self, args);
