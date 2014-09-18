@@ -6,18 +6,25 @@ ma:wizard is a smart package for [Meteor](https://www.meteor.com/) which simplif
 ma:wizard makes use of [maSimpleSchema](https://github.com/doubleslashG/ma-simple-schema) for schemas definition and validation.
 
 ## Installation
-Clone the repository in a local directory
-````bash
-$ cd ~/my_repos/
-$ git clone https://github.com/doubleslashG/ma-wizard.git
+As the package is not in the sky, you should use `mrt`. Modify your `smart.json` as follows:
 ````
-
-Copy the directory in the `packages` folder of your Meteor project or make a symlink (better alternative to simplify the update procedure)
-````bash
-$ ln -s ~/my_repos/ma:wizard /my_project_path/packages/ma:wizard
+{
+  "packages": {
+    "ma:simple-schema": {
+    	"git": "https://github.com/doubleslashG/ma-simple-schema.git"
+    },
+    "ma:wizard": {
+        "git": "https://github.com/doubleslashG/ma-wizard.git"
+    }
+  }
+}
 ````
-
-Finally run
+Then start your app with:
+````bash
+$ cd my_project_folder/
+$ mrt
+````
+For Meteor >= 0.9, add the package with `meteor add`:
 ````bash
 $ meteor add ma:wizard
 ````
@@ -114,20 +121,26 @@ Button to update an existing document in the database with the values present in
 	{{> maWizardSave }}
 {{/if}}
 ````
+If the document is saved without errors, navigates to `baseRoute` (or home "/" if no `baseRoute` has been set) via `iron:router`.
 
-#### maWizardCancel & maWizardBackToList
-Both templates display a button that redirects to the `baseRoute` through `iron:router`. If no `baseRoute` has been specified in `init(conf)`, redirects to homepage ("/").
-The difference between the two templates is that they respectively report the labels "Cancel" and "Back to list" (guess the meaning of the second one).
+#### maWizardOk
+Same behaviour as `maWizardSave`, but the button label is "Ok" and an eventual `onSaveFailure()` callback set with `maWizard.setOnSaveFailure(callback)` is ignored. If the data context is invalid, an alert is shown and navigation to `baseRoute` is aborted.
+
+#### maWizardBack
+Same behaviour as `maWizardOk`, but the button label is "Back".
+
+#### maWizardDiscard
+Discard changes to the data context and navigates to `baseRoute` (or home "/" if no `baseRoute` has been set).
 
 #### maWizardDelete
 Button to delete the current document from database. To use in "update" mode.
 
 ## Attaching standard actions to other components
-If you want to define your own components for the standard Create, Save, Cancel, BackToList and Delete actions, just add the boolean attribute `data-ma-wizard-actionName` to the chosen component, where `actionName` is one among `create`, `save`, `cancel`, `backToList` and `delete`.
-As an example, here is the definition of the `maWizardSave` template:
+If you want to define your own components for the standard Create, Save, Ok, Discard, Back and Delete actions, just add the boolean attribute `data-ma-wizard-actionName` to the chosen component, where `actionName` is one among `create`, `save`, `ok`, `discard`, `back` and `delete`.
+As an example, here is the definition of the `maWizardOk` template:
 ````HTML
-<template name="maWizardSave">
-  <button class="btn btn-default" data-ma-wizard-save>Save</button>
+<template name="maWizardOk">
+  <button class="btn btn-default" data-ma-wizard-ok>Ok</button>
 </template>
 ````
 
@@ -163,7 +176,7 @@ As an example, here is the definition of a text input linked to a `length` field
 	</div>
 </template>
 ````
-The `input` element is contained in a Bootstrap3 `form-group` element, and we are using the `maWizardFieldValidity` and `maWizardErrMsg` helpers for graphic validation. The `data-ma-wizard-control` attribute has been substituted by `data-my-component`, so that `maWizard` will ignore the component and we may refer to it via the new attribute. To get the value of the field we could use the `maWizardGetFieldValue` helper or define our own helper to gain control over the displayed value.
+The `input` element is contained in a Bootstrap3 `form-group` element, and we are using the `maWizardFieldValidity` and `maWizardErrMsg` helpers for graphic validation. The `data-ma-wizard-control` attribute has been substituted by `data-my-component`, so that `maWizard` will ignore the component and we may refer to it via the new attribute. To get the value of the field we could use the `maWizardGetFieldValue` helper or define our own helper to gain control over the displayed value (as done the code above).
 
 Now let's say we want to display the value of the `length` field as a measure in centimeters or inches depending on our app settings. Suppose that values in the database are always expressed in centimeters, so that we should eventually perform a conversion when needed. To do that, we define our own `myGetFieldValue` helper as follows:
 ````javascript
@@ -193,6 +206,9 @@ Template.myTextInput.events({
 });
 ````
 Now, the new component works as the standard components with the added functionality. Refer to the API section for documentation on the used methods.
+
+## Router.go() and invalid data
+The `Router.go()` function of `iron:router` is overridden by `maWizard` in order to prevent the user from navigating away from the current route if invalid data are present, so the user is obliged to discard changes or correct eventual mistakes before leaving the form/wizard. This makes data saved to database be always valid and up-to-date.
 
 ## API
 jsDoc generated: [API](http://htmlpreview.github.io/?https://github.com/doubleslashG/ma-wizard/blob/master/DOC/global.html)
