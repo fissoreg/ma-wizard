@@ -24,60 +24,88 @@
 
 <template name="maWizardTextInput">
 	<div class="form-group {{maWizardFieldValidity field}}">
+    {{#if label}}
       <label class="control-label">{{label}} {{maWizardErrMsg field}}</label>
+    {{else}}
+      <label class="control-label">{{maWizardGetFieldLabel field}} {{maWizardErrMsg field}}</label>
+    {{/if}}
+    {{#if placeholder}}
       <input type="text" class="form-control " data-ma-wizard-control placeholder={{placeholder}} value={{maWizardGetFieldValue field}} data-schemafield={{field}} autofocus maxlength={{maWizardMaxLength field}}>
+    {{else}}
+      <input type="text" class="form-control " data-ma-wizard-control placeholder="{{maWizardGetFieldLabel field}}..." value={{maWizardGetFieldValue field}} data-schemafield={{field}} autofocus maxlength={{maWizardMaxLength field}}>
+    {{/if}}
     </div>
 </template>
 
 <template name="maWizardTextarea">
 	<div class="form-group {{maWizardFieldValidity field}}">
+    {{#if label}}
       <label class="control-label">{{label}} {{maWizardErrMsg field}}</label>
+    {{else}}
+      <label class="control-label">{{maWizardGetFieldLabel field}} {{maWizardErrMsg field}}</label>
+    {{/if}}
+    {{#if placeholder}}
       <textarea class="form-control " data-ma-wizard-control placeholder={{placeholder}} value="{{maWizardGetFieldValue field}}" data-schemafield={{field}} maxlength={{maWizardMaxLength field}}></textarea>
+    {{else}}
+      <textarea class="form-control " data-ma-wizard-control placeholder="{{maWizardGetFieldLabel field}}..." value="{{maWizardGetFieldValue field}}" data-schemafield={{field}} maxlength={{maWizardMaxLength field}}></textarea>
+    {{/if}}
     </div>
 </template>
 
 <template name="maWizardSelect">
 	<div class="form-group field-type {{maWizardFieldValidity field}}">
+    {{#if label}}
       <label class="control-label">{{label}} {{maWizardErrMsg field}}</label>
-      <select required autocomplete="off" class="form-control " data-ma-wizard-control data-schemafield={{field}}>
+    {{else}}
+      <label class="control-label">{{maWizardGetFieldLabel field}} {{maWizardErrMsg field}}</label>
+    {{/if}}
+    <select required autocomplete="off" class="form-control " data-ma-wizard-control data-schemafield={{field}}>
+      {{#if placeholder}}
         <option {{maWizardOptionIsSelected field}} disabled selected value="">{{placeholder}}</option>
-        {{#if values}}
-          {{#each values}}
-            <option value="{{value}}" {{maWizardOptionIsSelected ../field}}>{{label}}</option>
-          {{/each}}
-        {{else}}
-          {{#each maWizardAllowedValuesFromSchema field}}
-            <option value="{{value}}" {{maWizardOptionIsSelected ../field}}>{{label}}</option>
-          {{/each}}
-        {{/if}}
-      </select>
-    </div>
+      {{else}}
+        <option {{maWizardOptionIsSelected field}} disabled selected value="">Select {{maWizardGetFieldLabel field}}</option>
+      {{/if}}
+      {{#if values}}
+        {{#each values}}
+          <option value="{{value}}" {{maWizardOptionIsSelected ../field}}>{{label}}</option>
+        {{/each}}
+      {{else}}
+        {{#each maWizardAllowedValuesFromSchema field}}
+          <option value="{{value}}" {{maWizardOptionIsSelected ../field}}>{{label}}</option>
+        {{/each}}
+      {{/if}}
+    </select>
+  </div>
 </template>
 
 <template name="maWizardMultiselect">
 	<div class="form-group {{maWizardFieldValidity field}}">
+    {{#if label}}
       <label class="control-label">{{label}} {{maWizardErrMsg field}}</label>
-      <div>
-        <select class="multiselect form-control {{field}}" data-ma-wizard-control multiple="multiple" data-schemafield={{field}}>
-          {{#if allowedValues}}
-            {{#each allowedValues}}
-              <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
-            {{/each}}
-          {{else}}
-            {{#each maWizardAllowedValuesFromSchema field}}
-              <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
-            {{/each}}
-          {{/if}}
-        </select>
-      </div>
+    {{else}}
+      <label class="control-label">{{maWizardGetFieldLabel field}} {{maWizardErrMsg field}}</label>
+    {{/if}}
+    <div>
+      <select class="multiselect form-control {{field}}" data-ma-wizard-control multiple="multiple" data-schemafield={{field}}>
+        {{#if allowedValues}}
+          {{#each allowedValues}}
+            <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
+          {{/each}}
+        {{else}}
+          {{#each maWizardAllowedValuesFromSchema field}}
+            <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
+          {{/each}}
+        {{/if}}
+      </select>
     </div>
+  </div>
 </template>
 
 <template name="maWizardCheckbox">
 	<div class="checkbox">
-      <label>
-        <input class="form-checkbox " data-ma-wizard-control type="checkbox" {{isChecked  this.field}} data-schemafield={{field}}>
-        {{label}}
-      </label>
-    </div>
+    <label>
+      <input class="form-checkbox " data-ma-wizard-control type="checkbox" {{isChecked  this.field}} data-schemafield={{field}}>
+      {{label}}
+    </label>
+  </div>
 </template>

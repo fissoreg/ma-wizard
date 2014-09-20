@@ -90,6 +90,11 @@ Then, for the UI, we use a `maWizardTextInput`:
 This is enough to provide the user with a text input to insert the country name (the `maWizardTextInput` template) and a button to insert the new entry into the database (the `maWizardCreate` template).
 Using standard components, inserted values are automatically validated and saved to the data context on the `change` event (which fires when the user changes the value of the component and then focus is lost). If a value is invalid, an error message is shown and the component is styled with the `has-error` Bootstrap3 class.
 
+The 'label' and 'placeholder' parameters, if not set, are read from the schema (the `label` field in the schema definition). So you almost always want to just set the reference to a certain field and let `maWizard` take care of the details:
+````HTML
+	{{> maWizardTextInput field="name"}}
+````
+
 #### maWizardTextInput
 A simple text input. It accepts both characters and numbers, though the validation is coherent with the data type reported in the schema definition.
 

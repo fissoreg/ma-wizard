@@ -520,6 +520,10 @@ UI.registerHelper('maWizardGetFieldValue', function(field) {
 		return "";
 });
 
+UI.registerHelper('maWizardGetFieldLabel', function(field) {
+	return maWizard.getSchemaObj(field).label;
+});
+
 // to use for String only, not for Number
 UI.registerHelper('maWizardMaxLength', function(field) {
 	var schema = maWizard.getSchemaObj();

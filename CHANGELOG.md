@@ -1,5 +1,8 @@
 # Change log
 
+## 2.0.1
+`label` and `placeholder` template parameters are now read from schema if not specified.
+
 ## 2.0.0
 1. Added `maWizardOk` standard component
 2. `maWizardCancel` became `maWizardDiscard` and `maWizardBackToList` became `maWizardBack`
