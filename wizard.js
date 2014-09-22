@@ -513,9 +513,16 @@ function FieldValuePair(field, value) {
 
 UI.registerHelper('maWizardGetFieldValue', function(field) {
 	var current = maWizard.getDataContext();
-
-	if(current)
-		return current[field];
+	// matches custom objects internal fields (mainFields.N.field)
+	// and returns an array with the needed tokens
+	var parsed = field.match(/(\w+)\.(\d)\.(\w+)/);
+	
+	if(current) {
+		if(parsed) {
+			return current[parsed[1]][parsed[2]][parsed[3]];
+		}
+		else return current[field];
+	}
 	else
 		return "";
 });
