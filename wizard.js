@@ -7,6 +7,7 @@ function maWizardConstructor() {
 
 	var collection;
 	var schema;
+	var collectionDefs;
 
 	var validationContext;
 
@@ -358,7 +359,6 @@ function maWizardConstructor() {
 	/**
 	 * Initializes the maWizard object.
 	 * If conf.collection is not specified, an error is thrown.
-	 * If conf.activeFields is not specified, every field in the collection is considered active (this is an array)
 	 * If conf.schema is not specified, it expects to find a SimpleSchema object attached to the collection with .attachSchema().
 	 * If conf.baseRoute is not specified, the root of the website ("/") is specified as baseRoute.
 	 * If conf.template is not specified, events on elements with data-ma-wizard-* attributes should be handled manually.
@@ -372,8 +372,10 @@ function maWizardConstructor() {
 		if(collection === undefined)
 			throw "No collection defined for maWizard!";
 
-		if(conf.activeFields)
-			activeFields = conf.activeFields;
+		var defs = Schemas.findOne({definition: collection._name + "_definitions"});
+		
+		if(defs)
+			activeFields = defs.visibleFields;
 		else
 			activeFields = undefined;
 

@@ -1,5 +1,8 @@
 # Change log
 
+## 2.1.0
+`ma:wizard` now hides non-visible fields (reading from `Schemas` collection) - to document in next commit
+
 ## 2.0.1
 `label` and `placeholder` template parameters are now read from schema if not specified.
 
