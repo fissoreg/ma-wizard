@@ -10,8 +10,7 @@ function maWizardConstructor() {
 
 	var validationContext;
 
-	var isInDatabase;
-
+	var activeFields;
 	var initializedTemplates = [];
 	var self = this;
 
@@ -100,6 +99,28 @@ function maWizardConstructor() {
 	 */
 	this.getSchema = function() {
 		return schema;
+	};
+
+	/**
+	 * Returns true if the specified field is active (this means it is shown when using standard components).
+	 * @param  {String} field - SimpleSchema field name
+	 */
+	this.isFieldActive = function(field) {
+		if(activeFields) {
+			if(activeFields.indexOf(field) > -1)
+				return true;
+			else
+				return false;
+		}
+
+		return true;
+	};
+
+	/**
+	 * Returns an array containing all active fields (those shown when using standard components).
+	 */
+	this.getActiveFields = function() {
+		return activeFields;
 	};
 
 	/**
@@ -337,8 +358,9 @@ function maWizardConstructor() {
 	/**
 	 * Initializes the maWizard object.
 	 * If conf.collection is not specified, an error is thrown.
+	 * If conf.activeFields is not specified, every field in the collection is considered active (this is an array)
 	 * If conf.schema is not specified, it expects to find a SimpleSchema object attached to the collection with .attachSchema().
-	 * If conf.baseRoute is not specified, baseRoute is specified as the root of the website.
+	 * If conf.baseRoute is not specified, the root of the website ("/") is specified as baseRoute.
 	 * If conf.template is not specified, events on elements with data-ma-wizard-* attributes should be handled manually.
 	 * @param  {Object} conf - Configuration object
 	 */
@@ -349,6 +371,11 @@ function maWizardConstructor() {
 		
 		if(collection === undefined)
 			throw "No collection defined for maWizard!";
+
+		if(conf.activeFields)
+			activeFields = conf.activeFields;
+		else
+			activeFields = undefined;
 
 		if(conf.schema === undefined)
 			schema = collection.simpleSchema();
@@ -528,7 +555,12 @@ UI.registerHelper('maWizardGetFieldValue', function(field) {
 });
 
 UI.registerHelper('maWizardGetFieldLabel', function(field) {
-	return maWizard.getSchemaObj(field).label;
+	try {
+		return maWizard.getSchemaObj(field).label;
+	}
+	catch(e) {
+		return "";
+	}
 });
 
 // to use for String only, not for Number
@@ -538,9 +570,13 @@ UI.registerHelper('maWizardMaxLength', function(field) {
 	// if the field is of the type mainField.N.field we
 	// must replace the number N with $
 	var normField = field.replace(/\.\d\./, ".$.");
-
-	if(schema && schema[normField]['max'])
-		return schema[normField]['max'];
+	try {
+		if(schema && schema[normField]['max'])
+			return schema[normField]['max'];
+	}
+	catch(e) {
+		return -1;
+	}
 	
 	return -1;
 });
@@ -579,6 +615,10 @@ UI.registerHelper('maWizardOptionIsSelected', function(field) {
 
 UI.registerHelper('maWizardAllowedValuesFromSchema', function(field) {
 	return maWizard.getSimpleSchemaAllowedValues(field);
+});
+
+UI.registerHelper('maWizardIsFieldActive', function(field) {
+	return maWizard.isFieldActive(field);
 });
 /*****************************************************************************************/
 
