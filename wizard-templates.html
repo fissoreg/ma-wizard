@@ -22,6 +22,10 @@
   <button class="btn btn-default" data-ma-wizard-back>Back</button>
 </template>
 
+<template name="maWizardBtn">
+  <button class="btn btn-default" data-ma-wizard-save>{{label}}</button>
+</template>
+
 <template name="maWizardTextInput">
   {{#if maWizardIsFieldActive field}}
   	<div class="form-group {{maWizardFieldValidity field}}">

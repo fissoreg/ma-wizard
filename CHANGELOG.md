@@ -1,5 +1,8 @@
 # Change log
 
+## 2.2.0
+Added `maWizardBtn` standard component: a save button with custom label
+
 ## 2.1.1
 Error messages are now shown under standard components (bootstrap-like).
 Fix #7
