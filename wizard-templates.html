@@ -74,9 +74,9 @@
         </label>
       <select required autocomplete="off" class="form-control " data-ma-wizard-control data-schemafield={{field}}>
         {{#if placeholder}}
-          <option {{maWizardOptionIsSelected field}} disabled selected value="">{{placeholder}}</option>
+          <option {{maWizardOptionIsSelected field}} selected value="">{{placeholder}}</option>
         {{else}}
-          <option {{maWizardOptionIsSelected field}} disabled selected value="">Select {{maWizardGetFieldLabel field}}</option>
+          <option {{maWizardOptionIsSelected field}} selected value="">Select {{maWizardGetFieldLabel field}}</option>
         {{/if}}
         {{#if values}}
           {{#each values}}

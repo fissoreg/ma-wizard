@@ -107,8 +107,12 @@ function maWizardConstructor() {
 	 * @param  {String} field - SimpleSchema field name
 	 */
 	this.isFieldActive = function(field) {
+		// if the field is of the type mainField.N.field we
+		// must replace the number N with $
+		var normField = field.replace(/\.\d\./, ".$.");
+		
 		if(activeFields) {
-			if(activeFields.indexOf(field) > -1)
+			if(activeFields.indexOf(normField) > -1)
 				return true;
 			else
 				return false;
