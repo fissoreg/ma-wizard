@@ -3,7 +3,13 @@
 </template>
 
 <template name="maWizardSave">
-  <button class="btn btn-default" data-ma-wizard-save>Save</button>
+  <button class="btn btn-default" data-ma-wizard-save>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Save
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardDiscard">
@@ -20,10 +26,6 @@
 
 <template name="maWizardBack">
   <button class="btn btn-default" data-ma-wizard-back>Back</button>
-</template>
-
-<template name="maWizardBtn">
-  <button class="btn btn-default" data-ma-wizard-save>{{label}}</button>
 </template>
 
 <template name="maWizardTextInput">
