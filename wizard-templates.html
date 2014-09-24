@@ -37,6 +37,7 @@
       {{else}}
         <input type="text" class="form-control " data-ma-wizard-control placeholder="{{maWizardGetFieldLabel field}}..." value={{maWizardGetFieldValue field}} data-schemafield={{field}} autofocus maxlength={{maWizardMaxLength field}}>
       {{/if}}
+      <span class="help-block">{{maWizardErrMsg field}}</span>
     </div>
   {{/if}}
 </template>
@@ -56,6 +57,7 @@
       {{else}}
         <textarea class="form-control " data-ma-wizard-control placeholder="{{maWizardGetFieldLabel field}}..." value="{{maWizardGetFieldValue field}}" data-schemafield={{field}} maxlength={{maWizardMaxLength field}}></textarea>
       {{/if}}
+      <span class="help-block">{{maWizardErrMsg field}}</span>
     </div>
   {{/if}}
 </template>
@@ -86,6 +88,7 @@
           {{/each}}
         {{/if}}
       </select>
+      <span class="help-block">{{maWizardErrMsg field}}</span>
     </div>
   {{/if}}
 </template>
@@ -113,6 +116,7 @@
           {{/if}}
         </select>
       </div>
+      <span class="help-block">{{maWizardErrMsg field}}</span>
     </div>
   {{/if}}
 </template>

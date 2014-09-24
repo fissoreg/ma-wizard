@@ -1,5 +1,9 @@
 # Change log
 
+## 2.1.1
+Error messages are now shown under standard components (bootstrap-like).
+Fix #7
+
 ## 2.1.0
 `ma:wizard` now hides non-visible fields (reading from `Schemas` collection) - to document in next commit
 

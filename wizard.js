@@ -354,6 +354,8 @@ function maWizardConstructor() {
 		var current = this.getDataContext();
 		if(current)
 			this.setDataContext(loadFromDatabase(current._id));
+
+		validationContext.resetValidation();
 	};
 
 	/**
@@ -373,7 +375,7 @@ function maWizardConstructor() {
 			throw "No collection defined for maWizard!";
 
 		var defs = Schemas.findOne({definition: collection._name + "_definitions"});
-		
+
 		if(defs)
 			activeFields = defs.visibleFields;
 		else
@@ -597,10 +599,8 @@ UI.registerHelper('maWizardErrMsg', function(field) {
 	if(field === undefined)
 		return '';
 	var msg = maWizard.getValidationContext().keyErrorMessage(field);
-	if(msg === "")
-		return "";
-	else
-		return " - " + msg;
+	
+	return msg;
 });
 
 UI.registerHelper('maWizardOptionIsSelected', function(field) {
@@ -631,8 +631,8 @@ var go = Router.go; // cache the original Router.go method
 Router.go = function () {
 	var self = this;
 	var args = arguments;
-
-	if(maWizard.getDataContext()) {
+	
+	if(maWizard.getDataContext() && maWizard.getDataContext()._id) {
 		var saveResult = maWizard.saveToDatabase();
 		if(typeof saveResult === 'string' || saveResult === false)
 			bootbox.alert("Invalid data present. Please correct them or discard changes.");
