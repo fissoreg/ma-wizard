@@ -378,7 +378,10 @@ function maWizardConstructor() {
 		if(collection === undefined)
 			throw "No collection defined for maWizard!";
 
-		var defs = Schemas.findOne({definition: collection._name + "_definitions"});
+		var defs;
+
+		if(Schemas)
+			defs = Schemas.findOne({definition: collection._name + "_definitions"});
 
 		if(defs)
 			activeFields = defs.visibleFields;
