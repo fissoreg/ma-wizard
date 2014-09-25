@@ -303,7 +303,7 @@ function maWizardConstructor() {
 
 		validationContext.resetValidation();
 		// usual clean
-		schema.clean(toSave, {removeEmptyStrings: false});
+		schema.clean(toSave);
 		validationContext.validate(toSave);
 
 		if(validationContext.invalidKeys().length > 0)
@@ -463,6 +463,27 @@ function maWizardConstructor() {
 		};
 
 		Template[templ].events({
+			'select2-selecting select': function(evt, templ) {
+				var route;
+
+				// if the current option has the `value` property formatted as
+				// "route:routename" we want to navigate to `routename` and stop 
+				// propagation of the event in order not to save the value to data context
+				var parsed = evt.val.match(/route:(.+)/);
+				if(parsed)
+					route = parsed[1];
+
+				// if `route` is undefined nothing is done so the `change` event
+				// will be triggered
+				if(route) {
+					$('select[data-schemafield="' +
+						evt.currentTarget.getAttribute("data-schemafield") +
+						'"]'
+					).select2("close");
+					Router.go(route);
+					evt.preventDefault();
+				}
+			},
 			'change [data-ma-wizard-control]': function(evt, templ) {
 				maWizard.saveHTMLElement(evt.currentTarget);
 			},

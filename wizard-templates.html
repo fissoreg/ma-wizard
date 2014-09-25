@@ -108,11 +108,11 @@
           {{maWizardGetFieldLabel field}}
         {{/if}}
         </label>
-      <select required autocomplete="off" class="form-control " data-ma-wizard-control data-schemafield={{field}}>
+      <select required autocomplete="off" class="form-control simple-select" data-ma-wizard-control data-schemafield={{field}}>
         {{#if placeholder}}
-          <option {{maWizardOptionIsSelected field}} selected value="">{{placeholder}}</option>
+          <option {{maWizardOptionIsSelected field}} selected value="" data-placeholder="{{placeholder}}"></option>
         {{else}}
-          <option {{maWizardOptionIsSelected field}} selected value="">Select {{maWizardGetFieldLabel field}}</option>
+          <option {{maWizardOptionIsSelected field}} selected value="" data-placeholder="Select {{maWizardGetFieldLabel field}}"></option>
         {{/if}}
         {{#if values}}
           {{#each values}}
@@ -122,6 +122,9 @@
           {{#each maWizardAllowedValuesFromSchema field}}
             <option value="{{value}}" {{maWizardOptionIsSelected ../field}}>{{label}}</option>
           {{/each}}
+        {{/if}}
+        {{#if addRoute}}
+          <option value="route:{{addRoute}}">Add...</option>
         {{/if}}
       </select>
       <span class="help-block">{{maWizardErrMsg field}}</span>
@@ -139,8 +142,7 @@
           {{maWizardGetFieldLabel field}}
         {{/if}}
       </label>
-      <div>
-        <select class="multiselect form-control {{field}}" data-ma-wizard-control multiple="multiple" data-schemafield={{field}}>
+        <select class="multiselect form-control" data-ma-wizard-control multiple="multiple" data-schemafield={{field}}>
           {{#if allowedValues}}
             {{#each allowedValues}}
               <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
@@ -150,10 +152,12 @@
               <option {{maWizardOptionIsSelected ../field}} value="{{value}}">{{label}}</option>
             {{/each}}
           {{/if}}
+          {{#if addRoute}}
+            <option value="route:{{addRoute}}">Add...</option>
+          {{/if}}
         </select>
       </div>
       <span class="help-block">{{maWizardErrMsg field}}</span>
-    </div>
   {{/if}}
 </template>
 

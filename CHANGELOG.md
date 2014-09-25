@@ -1,5 +1,11 @@
 # Change log
 
+## 2.3.0
+1. Changed Bootstrap-multiselect with Select2 for `maWizardSelect` and `maWizardMultiselect`
+2. Added `Add...` options with `addRoute` parameter in `maWizardSelect` and `maWizardMultiselect`
+3. Added `natestrauser:select2` dependency
+4. Fix #6
+
 ## 2.2.0
 Added `maWizardBtn` standard component: a save button with custom label
 

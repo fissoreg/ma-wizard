@@ -109,6 +109,10 @@
       "1.0.4"
     ],
     [
+      "natestrauser:select2",
+      "3.4.9"
+    ],
+    [
       "observe-sequence",
       "1.0.2"
     ],

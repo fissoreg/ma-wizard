@@ -1,7 +1,7 @@
 Package.describe({
   name: "ma:wizard",
   summary: "Forms and wizards management made easy",
-  version: "2.2.0",
+  version: "2.3.0",
   git: "https://github.com/doubleslashG/ma-wizard.git"
 });
 
@@ -10,6 +10,7 @@ Package.onUse(function(api) {
   
   api.use('ma:simple-schema');
   api.use('iron:router');
+  api.use('natestrauser:select2');
   api.use(['ui', 'tracker', 'underscore', 'templating']);
 
   api.imply('ma:simple-schema');
