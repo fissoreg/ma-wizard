@@ -1,5 +1,11 @@
 <template name="maWizardOk">
-  <button class="btn btn-default" data-ma-wizard-ok>Ok</button>
+  <button class="btn btn-default" data-ma-wizard-ok>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Ok
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardSave">
@@ -13,19 +19,43 @@
 </template>
 
 <template name="maWizardDiscard">
-  <button class="btn btn-default" data-ma-wizard-discard>Discard changes</button>
+  <button class="btn btn-default" data-ma-wizard-discard>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Discard changes
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardCreate">
-  <button class="btn btn-default" data-ma-wizard-create>Create</button>
+  <button class="btn btn-default" data-ma-wizard-create>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Create
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardDelete">
-  <button class="btn btn-danger" data-ma-wizard-delete>Delete</button>
+  <button class="btn btn-danger" data-ma-wizard-delete>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Delete
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardBack">
-  <button class="btn btn-default" data-ma-wizard-back>Back</button>
+  <button class="btn btn-default" data-ma-wizard-back>
+    {{#if label}}
+      {{label}}
+    {{else}}
+      Back
+    {{/if}}
+  </button>
 </template>
 
 <template name="maWizardTextInput">
