@@ -12,6 +12,8 @@ function maWizardConstructor() {
 	var validationContext;
 
 	var activeFields;
+	var template;
+	var isModal;
 	var initializedTemplates = [];
 	var self = this;
 
@@ -126,6 +128,17 @@ function maWizardConstructor() {
 	 */
 	this.getActiveFields = function() {
 		return activeFields;
+	};
+
+	this.isModal = function() {
+		if(isModal)
+			return true;
+		else
+			return false;
+	};
+
+	this.getTemplateName = function() {
+		return template;
 	};
 
 	/**
@@ -343,12 +356,16 @@ function maWizardConstructor() {
 	};
 
 	/**
-	 * Set the data context to undefined and resets the validation context
+	 * Set the data context to undefined and resets the validation context, plus some internal cleaning
 	 */
 	this.reset = function() {
 		// TODO: remove orphan attachments files!!!
 		this.setDataContext(undefined);
 		validationContext.resetValidation();
+
+		activeFields = undefined;
+		template = undefined;
+		isModal = undefined;
 	};
 
 	/**
@@ -403,6 +420,11 @@ function maWizardConstructor() {
 		contextObj = loadFromDatabase(conf.id);
 
 		this.setDataContext(contextObj);
+
+		// could be undefined, true or false (undefined by default)
+		isModal = conf.isModal;
+
+		template = conf.template;
 
 		// there's no way to unbind events attached to templates via Meteor APIs,
 		// so I keep in memory which templates I have already initialized in order
@@ -656,20 +678,31 @@ UI.registerHelper('maWizardIsFieldActive', function(field) {
 // http://stackoverflow.com/questions/24367914/aborting-navigation-with-meteor-iron-router
 
 var go = Router.go; // cache the original Router.go method
+
 Router.go = function () {
 	var self = this;
 	var args = arguments;
+
+	function customGo() {
+		if(maWizard.isModal())
+			$('#' + maWizard.getTemplateName() + ' .modal')
+				.on('hidden.bs.modal', function() {
+					go.apply(self, args);
+				})
+				.modal('hide');
+		else go.apply(self, args);
+	}
 	
 	if(maWizard.getDataContext() && maWizard.getDataContext()._id) {
 		var saveResult = maWizard.saveToDatabase();
 		if(typeof saveResult === 'string' || saveResult === false)
 			bootbox.alert("Invalid data present. Please correct them or discard changes.");
 		else {
-			go.apply(self, args);
+			customGo();
 			maWizard.reset();
 		}
 	}
-	else go.apply(self, args);
+	else customGo();
 };
 
 maWizard = new maWizardConstructor();

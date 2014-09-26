@@ -1,5 +1,9 @@
 # Change log
 
+## 2.4.0
+Added `isModal` boolean parameter in `init()` and `isModal()`, `getTemplateName()` public methods.
+`maWizard` now knows if the template is a modal and acts accordingly. Fix #10
+
 ## 2.3.0
 1. Changed Bootstrap-multiselect with Select2 for `maWizardSelect` and `maWizardMultiselect`
 2. Added `Add...` options with `addRoute` parameter in `maWizardSelect` and `maWizardMultiselect`
