@@ -15,6 +15,7 @@ function maWizardConstructor() {
 	var template;
 	var isModal;
 	var initializedTemplates = [];
+	var dbReplica;
 	var self = this;
 
 	/**
@@ -38,9 +39,11 @@ function maWizardConstructor() {
 	var loadFromDatabase = function(id) {
 		// if no id is specified I am adding a new object
 		if(id === undefined)
-			return self.buildObjectFromSchema();
+			dbReplica = {};
 		else
-			return collection.findOne(id);
+			dbReplica = collection.findOne(id);
+
+		return dbReplica;
 	};
 
 	/**
@@ -218,7 +221,10 @@ function maWizardConstructor() {
 
 		// clean the object "to avoid any avoidable validation errors" 
 		// [cit. aldeed - Simple-Schema author]
-		schema.clean(plainObj, {removeEmptyStrings: false});
+		schema.clean(plainObj);
+
+		if(Object.keys(plainObj).length === 0)
+			plainObj[field] = undefined;
 
 		// update the data context
 		this.updateContext(plainObj);
@@ -263,7 +269,7 @@ function maWizardConstructor() {
 		var current = dataContext;
 
 		var resetField = function(key) {
-			current[key] = getDefaultValue(key);
+			current = _.omit(current, key);
 		};
 
 		// apply changes to current object
@@ -278,9 +284,13 @@ function maWizardConstructor() {
 				var index = field.substr(dotIndex + 1,1);
 				var customField = field.substring(dotIndex + 3);
 
-				// the corresponding object must already exist in the 
-				// data context, so I just assign the new value
-				current[mainField][index][customField] = newData[field];
+				// if newData[field] is undefined, I unset the value in data context
+				if(newData[field] === undefined)
+					current[mainField][index] = _.omit(current[mainField][index], customField);
+				else
+					// the corresponding object must already exist in the 
+					// data context, so I just assign the new value
+					current[mainField][index][customField] = newData[field];
 
 			} // following if condition is too long, refactor
 			else if(_.contains(schema.objectKeys(), field) && Array.isArray(schema.schema(field).type()) && !Array.isArray(newData[field])) {
@@ -293,6 +303,8 @@ function maWizardConstructor() {
 				elems.push(newData[field]);
 				current[field] = elems;
 			}
+			else if(newData[field] === undefined)
+				current = _.omit(current, field);
 			else current[field] = newData[field];
 
 			// check for dependencies
@@ -328,14 +340,25 @@ function maWizardConstructor() {
 
 		if(validationContext.invalidKeys().length > 0)
 			return false;
-		else
-			return collection.update(current._id, {$set: toSave}, function(error, result) {
+		else {
+			var set = {};
+			var unset = {};
+
+			for(var field in _.omit(dbReplica, "_id")) {
+				if(toSave[field] !== undefined)
+					set[field] = toSave[field];
+				else
+					unset[field] = "";
+			}
+
+			return collection.update(current._id, {$set: set, $unset: unset}, function(error, result) {
 				if(error)
 					console.log("Error on save", error);
 				// something went wrong... 
 				// TODO: add a callback that saves the datacontext in order not
 				// to lose changes
 			});
+		}
 	};
 
 	/**

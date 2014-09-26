@@ -1,5 +1,8 @@
 # Change log
 
+## 3.1.0
+Fix #11
+
 ## 3.0.0
 1. Added class `ma-wizard-modal` to specify in Bootstrap modal HTML elements
 2. Updated documentation (both README.md and jsDoc)
