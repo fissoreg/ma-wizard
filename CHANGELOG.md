@@ -1,5 +1,9 @@
 # Change log
 
+## 3.0.0
+1. Added class `ma-wizard-modal` to specify in Bootstrap modal HTML elements
+2. Updated documentation (both README.md and jsDoc)
+
 ## 2.4.1
 Bugfix on delete action when inside modal
 

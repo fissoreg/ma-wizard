@@ -130,6 +130,10 @@ function maWizardConstructor() {
 		return activeFields;
 	};
 
+	/**
+	 * Returns `true` if the current template is treated as a Bootstrap modal (as set in `init()`).
+	 * False otherwise.
+	 */
 	this.isModal = function() {
 		if(isModal)
 			return true;
@@ -137,6 +141,9 @@ function maWizardConstructor() {
 			return false;
 	};
 
+	/**
+	 * Returns the template name
+	 */
 	this.getTemplateName = function() {
 		return template;
 	};
@@ -687,7 +694,7 @@ Router.go = function () {
 
 	function customGo() {
 		if(maWizard.isModal())
-			$('#' + maWizard.getTemplateName() + ' .modal')
+			$('#' + maWizard.getTemplateName() + ' .modal.ma-wizard-modal')
 				.on('hidden.bs.modal', function() {
 					go.apply(self, args);
 				})

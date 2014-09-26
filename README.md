@@ -40,6 +40,10 @@ Once the package is installed, the global `maWizard` object is available. This p
 * `schema`: Optional. maSimpleSchema object related to `collection`. If not specified, `maWizard` expects to find the schema definition attached to the collection itself (through the maSimpleSchema method `attachSchema`).
 * `template`: Optional. If you use the UI components provided by `maWizard`, you should specify the name of the template that is using them.
 * `baseRoute`: Optional. Set a base route referred to by standard actions.
+* `isModal`: Optional. Boolean parameter to let `maWizard` know if the specified template is a modal and act accordingly.`false` by default.
+
+#### Modal templates
+To use `maWizard` with a Bootstrap modal, set the `isModal` parameter to `true` in `init()` and add the `ma-wizard-modal` class to the modal HTML element.
 
 #### Create mode
 If no `id` is specified in `conf`, `maWizard` is initialized in "create" mode.  This means that the data context is initialized with an object built from the schema and whose values are default. The `_id` field will be `undefined` until the `maWizard.create()` method is called.
@@ -107,38 +111,46 @@ A simple checkbox to deal with boolean values. This template just accepts the `f
 #### maWizardSelect
 A `<select>` element whose options are specified by the `values` parameter:
 ````HTML
-{{> maWizardSelect field="genre" label="Genre" placeholder="Choose a genre" values=arrayOfGenres }}
+{{> maWizardSelect field="genre" label="Genre" placeholder="Choose a genre" values=arrayOfGenres addRoute="/books/edit/add_genre"}}
 ````
 If the `values` parameter is not specified, the options are read from the `maAllowedValues` or `allowedValues` field in the schema definition (in the reported order) by using the `maWizard.getSimpleSchemaAllowedValues(field)` method.
+It accepts an additional `addRoute` parameter, which adds an option with label "Add..." that redirects to the specified route when clicked.
 
 #### maWizardMultiselect
 This component works the same as `maWizardSelect`, but lets you select more then one option. Works with schema entries whose `type` is an array (as `[String]`).
 
 #### maWizardCreate
 Button to save the current data context in the database creating a new document. If you use this in "update" mode, you could duplicate database entries. Usually, you want to conditionally display this element checking for the `_id` field in the data context (see example for `maWizardSave`).
+It accepts an optional `label` parameter to change the default label.
 
 #### maWizardSave
 Button to update an existing document in the database with the values present in the data context. Usually, you want to conditionally display this element if we are in "update" mode:
 ````HTML
-{#if getDataContextFieldHelper '_id'}}
+{#if maWizardGetFieldValue '_id'}}
 	{{> maWizardCreate }}
 {{else}}
 	{{> maWizardSave }}
 {{/if}}
 ````
 If the document is saved without errors, navigates to `baseRoute` (or home "/" if no `baseRoute` has been set) via `iron:router`.
+It accepts an optional `label` parameter to change the default label.
 
 #### maWizardOk
 Same behaviour as `maWizardSave`, but the button label is "Ok" and an eventual `onSaveFailure()` callback set with `maWizard.setOnSaveFailure(callback)` is ignored. If the data context is invalid, an alert is shown and navigation to `baseRoute` is aborted.
+It accepts an optional `label` parameter to change the default label.
 
 #### maWizardBack
-Same behaviour as `maWizardOk`, but the button label is "Back".
+Same behaviour as `maWizardOk`, but the button label is "Back". Exactly the same as:
+````HTML
+{{> maWizardOk label="Back"}}
+````
 
 #### maWizardDiscard
-Discard changes to the data context and navigates to `baseRoute` (or home "/" if no `baseRoute` has been set).
+Discard changes to the data context and navigates to `baseRoute` (or home "/" if no `baseRoute` has been set). It accepts an optional `label` parameter to change the default label.
 
 #### maWizardDelete
 Button to delete the current document from database. To use in "update" mode.
+It accepts an optional `label` parameter to change the default label.
 
 ## Attaching standard actions to other components
 If you want to define your own components for the standard Create, Save, Ok, Discard, Back and Delete actions, just add the boolean attribute `data-ma-wizard-actionName` to the chosen component, where `actionName` is one among `create`, `save`, `ok`, `discard`, `back` and `delete`.
@@ -152,13 +164,16 @@ As an example, here is the definition of the `maWizardOk` template:
 ## Custom components
 If the standard components don't fit your needs, you can easily define fancy custom components that are automatically managed by `maWizard`. To let `maWizard` be aware of the existence of your custom component, just add the boolean attribute `data-ma-wizard-control` to it. Then to link the component to a certain schema field, use the attribute `data-schemafield="fieldName"`. The value stored in the data context by `maWizard` is read from the `value` attribute of the HTML component.
 
-Sometimes you want a greater control over your custom components and you don't want `maWizard` to automatically manage them. In such a case, you can take complete control and use the `maWizard` API (see the "Custom component definition and manual management" section).
+Sometimes you want a greater control over your custom components and you don't want `maWizard` to automatically manage them. In such a case, you can take complete control and use the `maWizard` API (see the **_Custom component definition and manual management_** section).
 
 ## maWizard Helpers
 A set of reactive helpers to use with custom components.
 
 #### maWizardGetFieldValue(field)
-Reactively gets the value of the specified schema field.
+Reactively gets the value of `field`.
+
+#### maWizardGetFieldLabel(field)
+Reactively gets the label of `field` as specified in the schema definition.
 
 #### maWizardFieldValidity(field)
 If the field is invalid, returns `"has-error"` (this is the Bootstrap3 class attached to the standard components when the corresponding field value is invalid). Returns the empty string otherwise.
@@ -171,17 +186,21 @@ This is a reactive method that runs every time the specified field is validated 
 #### maWizardAllowedValuesFromSchema(field)
 Returns an array of label/value pairs read from the `maAllowedValues` or `allowedValues` field in the schema definition, with priority given to `maAllowedValues`.
 
+#### maWizardIsFieldActive(field)
+`true` if `field` is active, `false` otherwise. Works with settings integration (see **_Settings integration_** section).
+
 ## Custom component definition and manual management
 As an example, here is the definition of a text input linked to a `length` field:
 ````HTML
 <template name="myTextInput">
 	<div class="form-group {{maWizardFieldValidity 'length'}}">
-		<label class="control-label">Length {{maWizardErrMsg 'length'}}</label>
+		<label class="control-label">Length</label>
 		<input type="text" class="form-control " data-my-component placeholder="Length..." value={{myGetFieldValue 'length'}} data-schemafield='length' autofocus
+		<span class="help-block">{{maWizardErrMsg 'length'}}</span>
 	</div>
 </template>
 ````
-The `input` element is contained in a Bootstrap3 `form-group` element, and we are using the `maWizardFieldValidity` and `maWizardErrMsg` helpers for graphic validation. The `data-ma-wizard-control` attribute has been substituted by `data-my-component`, so that `maWizard` will ignore the component and we may refer to it via the new attribute. To get the value of the field we could use the `maWizardGetFieldValue` helper or define our own helper to gain control over the displayed value (as done the code above).
+The `input` element is contained in a Bootstrap3 `form-group` element, and we are using the `maWizardFieldValidity` and `maWizardErrMsg` helpers for graphic validation. The `data-ma-wizard-control` attribute has been substituted by `data-my-component`, so that `maWizard` will ignore the component and we may refer to it via the new attribute. To get the value of the field we could use the `maWizardGetFieldValue` helper or define our own helper to gain control over the displayed value (as done in the above code).
 
 Now let's say we want to display the value of the `length` field as a measure in centimeters or inches depending on our app settings. Suppose that values in the database are always expressed in centimeters, so that we should eventually perform a conversion when needed. To do that, we define our own `myGetFieldValue` helper as follows:
 ````javascript
@@ -214,6 +233,30 @@ Now, the new component works as the standard components with the added functiona
 
 ## Router.go() and invalid data
 The `Router.go()` function of `iron:router` is overridden by `maWizard` in order to prevent the user from navigating away from the current route if invalid data are present, so the user is obliged to discard changes or correct eventual mistakes before leaving the form/wizard. This makes data saved to database be always valid and up-to-date.
+
+## Settings integration
+During initialization, `maWizard` checks for the presence in the current scope of the `Schemas` collection, whose schema should be defined as follows:
+````javascript
+schemaDetails = {
+    definition: {
+        type: String,
+        label: "Schema's definition name",
+        max: 100
+    },
+    filtered: {
+        type: [String],
+        label: "Fields the user should be aware of"
+    },
+    visibleFields: {
+        type: [String],
+        label: "Visible fields"
+    }
+};
+````
+If such a collection is present, then `maWizard` queries it to find the document whose `definition` is equal to `collection._name + "_definition"` and saves the array of `visibleFields`. Those are the fields to which the `maWizard.isFieldActive(field)`, `maWizard.getActiveFields()` methods and the `maWizardIsFieldActive(field)` helper refer to. 
+When using standard components, just the active fields are shown to the user. If you want to reproduce this behaviour with custom components, just use the `maWizardIsFieldActive` helper in an `#if` block.
+
+Note: `maWizard` treats the `Schemas` collection as read only, so you should take care of managing it.
 
 ## API
 jsDoc generated: [API](http://htmlpreview.github.io/?https://github.com/doubleslashG/ma-wizard/blob/master/DOC/global.html)

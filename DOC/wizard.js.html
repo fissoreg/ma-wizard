@@ -34,11 +34,13 @@
 
 	var collection;
 	var schema;
+	var collectionDefs;
 
 	var validationContext;
 
-	var isInDatabase;
-
+	var activeFields;
+	var template;
+	var isModal;
 	var initializedTemplates = [];
 	var self = this;
 
@@ -127,6 +129,50 @@
 	 */
 	this.getSchema = function() {
 		return schema;
+	};
+
+	/**
+	 * Returns true if the specified field is active (this means it is shown when using standard components).
+	 * @param  {String} field - SimpleSchema field name
+	 */
+	this.isFieldActive = function(field) {
+		// if the field is of the type mainField.N.field we
+		// must replace the number N with $
+		var normField = field.replace(/\.\d\./, ".$.");
+		
+		if(activeFields) {
+			if(activeFields.indexOf(normField) > -1)
+				return true;
+			else
+				return false;
+		}
+
+		return true;
+	};
+
+	/**
+	 * Returns an array containing all active fields (those shown when using standard components).
+	 */
+	this.getActiveFields = function() {
+		return activeFields;
+	};
+
+	/**
+	 * Returns `true` if the current template is treated as a Bootstrap modal (as set in `init()`).
+	 * False otherwise.
+	 */
+	this.isModal = function() {
+		if(isModal)
+			return true;
+		else
+			return false;
+	};
+
+	/**
+	 * Returns the template name
+	 */
+	this.getTemplateName = function() {
+		return template;
 	};
 
 	/**
@@ -304,7 +350,7 @@
 
 		validationContext.resetValidation();
 		// usual clean
-		schema.clean(toSave, {removeEmptyStrings: false});
+		schema.clean(toSave);
 		validationContext.validate(toSave);
 
 		if(validationContext.invalidKeys().length > 0)
@@ -320,11 +366,11 @@
 	};
 
 	/**
-	 * Remove the current document from database.
+	 * Remove the current document from database. Note: The data context is not touched, so you have to reset manually with `maWizard.reset()` if needed
 	 */
 	this.removeFromDatabase = function() {
 		var id = this.getDataContext()._id;
-		this.reset();
+		//this.reset();
 		return collection.remove(id, function(error, result) {
 			console.log("Error on remove: " + error);
 			console.log("Removed elements: " + result);
@@ -344,12 +390,16 @@
 	};
 
 	/**
-	 * Set the data context to undefined and resets the validation context
+	 * Set the data context to undefined and resets the validation context, plus some internal cleaning
 	 */
 	this.reset = function() {
 		// TODO: remove orphan attachments files!!!
 		this.setDataContext(undefined);
 		validationContext.resetValidation();
+
+		activeFields = undefined;
+		template = undefined;
+		isModal = undefined;
 	};
 
 	/**
@@ -359,13 +409,15 @@
 		var current = this.getDataContext();
 		if(current)
 			this.setDataContext(loadFromDatabase(current._id));
+
+		validationContext.resetValidation();
 	};
 
 	/**
 	 * Initializes the maWizard object.
 	 * If conf.collection is not specified, an error is thrown.
 	 * If conf.schema is not specified, it expects to find a SimpleSchema object attached to the collection with .attachSchema().
-	 * If conf.baseRoute is not specified, baseRoute is specified as the root of the website.
+	 * If conf.baseRoute is not specified, the root of the website ("/") is specified as baseRoute.
 	 * If conf.template is not specified, events on elements with data-ma-wizard-* attributes should be handled manually.
 	 * @param  {Object} conf - Configuration object
 	 */
@@ -376,6 +428,16 @@
 		
 		if(collection === undefined)
 			throw "No collection defined for maWizard!";
+
+		var defs;
+
+		if(Schemas)
+			defs = Schemas.findOne({definition: collection._name + "_definitions"});
+
+		if(defs)
+			activeFields = defs.visibleFields;
+		else
+			activeFields = undefined;
 
 		if(conf.schema === undefined)
 			schema = collection.simpleSchema();
@@ -392,6 +454,11 @@
 		contextObj = loadFromDatabase(conf.id);
 
 		this.setDataContext(contextObj);
+
+		// could be undefined, true or false (undefined by default)
+		isModal = conf.isModal;
+
+		template = conf.template;
 
 		// there's no way to unbind events attached to templates via Meteor APIs,
 		// so I keep in memory which templates I have already initialized in order
@@ -452,6 +519,27 @@
 		};
 
 		Template[templ].events({
+			'select2-selecting select': function(evt, templ) {
+				var route;
+
+				// if the current option has the `value` property formatted as
+				// "route:routename" we want to navigate to `routename` and stop 
+				// propagation of the event in order not to save the value to data context
+				var parsed = evt.val.match(/route:(.+)/);
+				if(parsed)
+					route = parsed[1];
+
+				// if `route` is undefined nothing is done so the `change` event
+				// will be triggered
+				if(route) {
+					$('select[data-schemafield="' +
+						evt.currentTarget.getAttribute("data-schemafield") +
+						'"]'
+					).select2("close");
+					Router.go(route);
+					evt.preventDefault();
+				}
+			},
 			'change [data-ma-wizard-control]': function(evt, templ) {
 				maWizard.saveHTMLElement(evt.currentTarget);
 			},
@@ -480,8 +568,10 @@
 					Router.go(maWizard.baseRoute + "/" + maWizard.getDataContext()._id);
 			},
 			'click [data-ma-wizard-delete]': function(evt,templ) {
-				if(maWizard.removeFromDatabase())
-					Router.go(maWizard.baseRoute);
+				bootbox.confirm("Are you sure?", function(result) {
+					if(result &amp;&amp; maWizard.removeFromDatabase())
+						Router.go(maWizard.baseRoute);
+				});
 			}
 		});
 	};
@@ -540,11 +630,27 @@ function FieldValuePair(field, value) {
 
 UI.registerHelper('maWizardGetFieldValue', function(field) {
 	var current = maWizard.getDataContext();
-
-	if(current)
-		return current[field];
+	// matches custom objects internal fields (mainFields.N.field)
+	// and returns an array with the needed tokens
+	var parsed = field.match(/(\w+)\.(\d)\.(\w+)/);
+	
+	if(current) {
+		if(parsed) {
+			return current[parsed[1]][parsed[2]][parsed[3]];
+		}
+		else return current[field];
+	}
 	else
 		return "";
+});
+
+UI.registerHelper('maWizardGetFieldLabel', function(field) {
+	try {
+		return maWizard.getSchemaObj(field).label;
+	}
+	catch(e) {
+		return "";
+	}
 });
 
 // to use for String only, not for Number
@@ -554,9 +660,13 @@ UI.registerHelper('maWizardMaxLength', function(field) {
 	// if the field is of the type mainField.N.field we
 	// must replace the number N with $
 	var normField = field.replace(/\.\d\./, ".$.");
-
-	if(schema &amp;&amp; schema[normField]['max'])
-		return schema[normField]['max'];
+	try {
+		if(schema &amp;&amp; schema[normField]['max'])
+			return schema[normField]['max'];
+	}
+	catch(e) {
+		return -1;
+	}
 	
 	return -1;
 });
@@ -575,10 +685,8 @@ UI.registerHelper('maWizardErrMsg', function(field) {
 	if(field === undefined)
 		return '';
 	var msg = maWizard.getValidationContext().keyErrorMessage(field);
-	if(msg === "")
-		return "";
-	else
-		return " - " + msg;
+	
+	return msg;
 });
 
 UI.registerHelper('maWizardOptionIsSelected', function(field) {
@@ -596,26 +704,41 @@ UI.registerHelper('maWizardOptionIsSelected', function(field) {
 UI.registerHelper('maWizardAllowedValuesFromSchema', function(field) {
 	return maWizard.getSimpleSchemaAllowedValues(field);
 });
+
+UI.registerHelper('maWizardIsFieldActive', function(field) {
+	return maWizard.isFieldActive(field);
+});
 /*****************************************************************************************/
 
 // overriding the Router.go function in order not to lose changes in our wizards
 // http://stackoverflow.com/questions/24367914/aborting-navigation-with-meteor-iron-router
 
 var go = Router.go; // cache the original Router.go method
+
 Router.go = function () {
 	var self = this;
 	var args = arguments;
 
-	if(maWizard.getDataContext()) {
+	function customGo() {
+		if(maWizard.isModal())
+			$('#' + maWizard.getTemplateName() + ' .modal.ma-wizard-modal')
+				.on('hidden.bs.modal', function() {
+					go.apply(self, args);
+				})
+				.modal('hide');
+		else go.apply(self, args);
+	}
+	
+	if(maWizard.getDataContext() &amp;&amp; maWizard.getDataContext()._id) {
 		var saveResult = maWizard.saveToDatabase();
 		if(typeof saveResult === 'string' || saveResult === false)
 			bootbox.alert("Invalid data present. Please correct them or discard changes.");
 		else {
-			go.apply(self, args);
+			customGo();
 			maWizard.reset();
 		}
 	}
-	else go.apply(self, args);
+	else customGo();
 };
 
 maWizard = new maWizardConstructor();
@@ -629,13 +752,13 @@ maWizard = new maWizardConstructor();
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Global</h3><ul><li><a href="global.html#buildFieldValuePair">buildFieldValuePair</a></li><li><a href="global.html#buildObjectFromSchema">buildObjectFromSchema</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#discard">discard</a></li><li><a href="global.html#getDataContext">getDataContext</a></li><li><a href="global.html#getOnSaveFailure">getOnSaveFailure</a></li><li><a href="global.html#getSchema">getSchema</a></li><li><a href="global.html#getSchemaObj">getSchemaObj</a></li><li><a href="global.html#getSimpleSchemaAllowedValues">getSimpleSchemaAllowedValues</a></li><li><a href="global.html#getValidationContext">getValidationContext</a></li><li><a href="global.html#hasChanged">hasChanged</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#parseHTMLElement">parseHTMLElement</a></li><li><a href="global.html#processFieldValuePair">processFieldValuePair</a></li><li><a href="global.html#removeFromDatabase">removeFromDatabase</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#saveHTMLElement">saveHTMLElement</a></li><li><a href="global.html#saveToDatabase">saveToDatabase</a></li><li><a href="global.html#setDataContext">setDataContext</a></li><li><a href="global.html#setOnSaveFailure">setOnSaveFailure</a></li><li><a href="global.html#setStandardEventHandlers">setStandardEventHandlers</a></li><li><a href="global.html#updateContext">updateContext</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Global</h3><ul><li><a href="global.html#buildFieldValuePair">buildFieldValuePair</a></li><li><a href="global.html#buildObjectFromSchema">buildObjectFromSchema</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#discard">discard</a></li><li><a href="global.html#getActiveFields">getActiveFields</a></li><li><a href="global.html#getDataContext">getDataContext</a></li><li><a href="global.html#getOnSaveFailure">getOnSaveFailure</a></li><li><a href="global.html#getSchema">getSchema</a></li><li><a href="global.html#getSchemaObj">getSchemaObj</a></li><li><a href="global.html#getSimpleSchemaAllowedValues">getSimpleSchemaAllowedValues</a></li><li><a href="global.html#getTemplateName">getTemplateName</a></li><li><a href="global.html#getValidationContext">getValidationContext</a></li><li><a href="global.html#hasChanged">hasChanged</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isFieldActive">isFieldActive</a></li><li><a href="global.html#isModal">isModal</a></li><li><a href="global.html#parseHTMLElement">parseHTMLElement</a></li><li><a href="global.html#processFieldValuePair">processFieldValuePair</a></li><li><a href="global.html#removeFromDatabase">removeFromDatabase</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#saveHTMLElement">saveHTMLElement</a></li><li><a href="global.html#saveToDatabase">saveToDatabase</a></li><li><a href="global.html#setDataContext">setDataContext</a></li><li><a href="global.html#setOnSaveFailure">setOnSaveFailure</a></li><li><a href="global.html#setStandardEventHandlers">setStandardEventHandlers</a></li><li><a href="global.html#updateContext">updateContext</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Thu Sep 18 2014 12:50:55 GMT+0200 (CEST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Fri Sep 26 2014 15:09:10 GMT+0200 (CEST)
 </footer>
 
 <script> prettyPrint(); </script>
