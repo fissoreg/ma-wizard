@@ -534,8 +534,10 @@ function maWizardConstructor() {
 					Router.go(maWizard.baseRoute + "/" + maWizard.getDataContext()._id);
 			},
 			'click [data-ma-wizard-delete]': function(evt,templ) {
-				if(maWizard.removeFromDatabase())
-					Router.go(maWizard.baseRoute);
+				bootbox.confirm("Are you sure?", function(result) {
+					if(result && maWizard.removeFromDatabase())
+						Router.go(maWizard.baseRoute);
+				});
 			}
 		});
 	};
