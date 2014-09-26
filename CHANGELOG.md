@@ -1,5 +1,8 @@
 # Change log
 
+## 2.4.1
+Bugfix on delete action when inside modal
+
 ## 2.4.0
 Added `isModal` boolean parameter in `init()` and `isModal()`, `getTemplateName()` public methods.
 `maWizard` now knows if the template is a modal and acts accordingly. Fix #10

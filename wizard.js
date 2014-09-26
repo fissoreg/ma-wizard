@@ -332,11 +332,11 @@ function maWizardConstructor() {
 	};
 
 	/**
-	 * Remove the current document from database.
+	 * Remove the current document from database. Note: The data context is not touched, so you have to reset manually with `maWizard.reset()` if needed
 	 */
 	this.removeFromDatabase = function() {
 		var id = this.getDataContext()._id;
-		this.reset();
+		//this.reset();
 		return collection.remove(id, function(error, result) {
 			console.log("Error on remove: " + error);
 			console.log("Removed elements: " + result);
